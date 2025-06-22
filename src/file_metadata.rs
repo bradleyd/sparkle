@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::time::SystemTime;
 
+#[derive(Debug)]
 pub struct FileMetadata {
     // Core filesystem info
     pub size: u64,
@@ -21,6 +22,7 @@ pub struct FileMetadata {
     pub file_type: FileType,         // Based on extension + content
 }
 
+#[derive(Debug)]
 pub enum SizeCategory {
     Tiny,   // < 1KB
     Small,  // 1KB - 1MB
@@ -29,6 +31,7 @@ pub enum SizeCategory {
     Huge,   // > 1GB
 }
 
+#[derive(Debug)]
 pub enum AgeCategory {
     Recent, // < 1 day
     Week,   // 1-7 days
@@ -37,6 +40,7 @@ pub enum AgeCategory {
     Old,    // > 1 year
 }
 
+#[derive(Debug)]
 pub enum FileType {
     Document,
     Image,

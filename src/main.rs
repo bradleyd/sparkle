@@ -60,4 +60,5 @@ fn main() {
 
     let mut results: Vec<FileMetadata> = Vec::new();
     search_dir(Path::new(&args[1].to_string()), &mut results, false);
+    println!("{:?}", results);
 }
