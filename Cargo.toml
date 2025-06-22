@@ -1,0 +1,7 @@
+[package]
+name = "sparkle"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+file-format = "0.27.0"
