@@ -40,7 +40,7 @@ pub enum AgeCategory {
     Old,    // > 1 year
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum FileType {
     Document,
     Image,
@@ -48,7 +48,25 @@ pub enum FileType {
     Audio,
     Archive,
     Code,
+    Configuration,
     Executable,
     SystemFile,
     Unknown,
+}
+
+impl FileType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            FileType::Document => "document",
+            FileType::Image => "image",
+            FileType::Video => "video",
+            FileType::Audio => "audio",
+            FileType::Archive => "archive",
+            FileType::Code => "code",
+            FileType::Configuration => "configuration",
+            FileType::Executable => "executable",
+            FileType::SystemFile => "system file",
+            FileType::Unknown => "unknown",
+        }
+    }
 }

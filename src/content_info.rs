@@ -1,6 +1,7 @@
 use std::time::Duration;
 use std::time::SystemTime;
 
+#[derive(Debug, Default)]
 pub struct ContentInfo {
     // MIME type detection
     pub mime_type: String,    // "image/jpeg", "text/plain", etc.
@@ -18,6 +19,7 @@ pub struct ContentInfo {
     pub has_metadata: bool,            // EXIF, ID3 ta
 }
 
+#[derive(Debug)]
 pub struct MediaInfo {
     pub width: Option<u32>,
     pub height: Option<u32>,
@@ -28,6 +30,7 @@ pub struct MediaInfo {
     pub gps_coordinates: Option<(f64, f64)>,
 }
 
+#[derive(Debug)]
 pub struct DocumentInfo {
     pub page_count: Option<u32>,
     pub word_count: Option<u32>,
@@ -36,6 +39,7 @@ pub struct DocumentInfo {
     pub created_date: Option<SystemTime>,
 }
 
+#[derive(Debug)]
 pub struct ArchiveInfo {
     pub format: String, // "zip", "tar.gz", etc.
     pub file_count: u32,

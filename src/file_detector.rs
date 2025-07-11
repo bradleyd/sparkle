@@ -1,20 +1,58 @@
+use crate::file_metadata::{self, AgeCategory, FileType, SizeCategory};
 use file_format::{FileFormat, Kind};
+use mime_guess2::mime;
 use std::time::SystemTime;
 use std::{fs::Metadata, os::unix::fs::MetadataExt, path::Path, u64};
 
-use crate::file_metadata::{self, AgeCategory, FileType, SizeCategory};
 pub fn get_file_type(f: &Path) -> crate::file_metadata::FileType {
     println!("fmt {:?}", f);
-    let fmt = FileFormat::from_file(f);
-    match fmt {
-        Ok(ff) => match ff.kind() {
-            Kind::Document => FileType::Document,
-            Kind::Image => FileType::Image,
-            Kind::Other => FileType::Unknown,
-            Kind::Archive => FileType::Archive,
+    let mime = mime_guess2::from_path(f);
+    if mime.is_empty() {
+        let fmt = FileFormat::from_file(f);
+        match fmt {
+            Ok(ff) => match ff.kind() {
+                Kind::Document => FileType::Document,
+                Kind::Image => FileType::Image,
+                Kind::Other => FileType::Unknown,
+                Kind::Archive => FileType::Archive,
+                _ => FileType::Unknown,
+            },
+            Err(_) => FileType::Unknown,
+        }
+    } else {
+        println!("mime guess {}", mime.first_or_octet_stream());
+        let mime = mime.first_or_octet_stream();
+        let result = match mime {
+            m if m == mime::IMAGE_GIF => FileType::Image,
+            m if m == mime::IMAGE_BMP => FileType::Image,
+            m if m == mime::IMAGE_JPEG => FileType::Image,
+            m if m == mime::IMAGE_JPEG => FileType::Image,
+            m if m == mime::IMAGE_SVG => FileType::Image,
+            m if m == mime::APPLICATION_PDF => FileType::Document,
+            m if m == mime::APPLICATION_JAVASCRIPT => FileType::Code,
             _ => FileType::Unknown,
-        },
-        Err(_) => FileType::Unknown,
+        };
+
+        if result.eq(&FileType::Unknown) {
+            guess_mime(f)
+        } else {
+            result
+        }
+    }
+}
+
+fn guess_mime(path: &Path) -> FileType {
+    let ext = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+
+    match ext.as_str() {
+        "java" | "rs" | "rb" | "ex" | "go" | "js" => FileType::Code,
+        "md" => FileType::Document,
+        "yml" | "yaml" | "toml" => FileType::Configuration,
+        _ => FileType::Unknown,
     }
 }
 

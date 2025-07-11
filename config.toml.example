@@ -1,0 +1,10 @@
+[[rules]]
+name = "Find PDFs"
+locations = ["~/Downloads"]
+subfolders = true
+
+[[rules.filters]]
+extension = "pdf" 
+
+[[rules.actions]]
+move = "/tmp"

@@ -1,13 +1,18 @@
 use std::collections::HashMap;
 use std::fs::{self, Metadata};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
-use crate::FileMetadata;
 use crate::file_detector::{get_age_category, get_file_size_category, get_file_type};
+use crate::{FileContext, FileMetadata};
 
 /// Recursively searches a directory and its subdirectories
-pub fn search_dir(dir: &Path, results: &mut Vec<FileMetadata>, quiet: bool) {
+pub fn search_dir(
+    dir: &Path,
+    results: &mut Vec<FileContext>,
+    config: &crate::config::Config,
+    quiet: bool,
+) {
     // bail early
     if !dir.is_dir() {
         return;
@@ -41,13 +46,15 @@ pub fn search_dir(dir: &Path, results: &mut Vec<FileMetadata>, quiet: bool) {
 
         // If the entry is a directory, recursively search it
         if path.is_dir() {
-            search_dir(&path, results, quiet);
+            search_dir(&path, results, config, quiet);
         } else {
             // We have a file, check if file matches criteria
+            let filters = &config.rules[0].filters;
+            let actions = &config.rules[0].actions;
             match fs::metadata(&path) {
                 Ok(metadata) => match metadata.modified() {
                     Ok(modified_time) => {
-                        results.push(FileMetadata {
+                        let fmeta = FileMetadata {
                             size: metadata.len(),
                             modified: modified_time,
                             created: get_created_time(&metadata),
@@ -60,7 +67,46 @@ pub fn search_dir(dir: &Path, results: &mut Vec<FileMetadata>, quiet: bool) {
                             size_category: get_file_size_category(&metadata),
                             age_category: get_age_category(&metadata),
                             file_type: get_file_type(&path),
-                        });
+                        };
+
+                        for f in filters.iter() {
+                            match f {
+                                crate::config::Filter::Extension { extension } => {
+                                    if extension.as_str() == path.extension().unwrap() {
+                                        println!("matched extension rule");
+                                        // get action
+                                        for a in actions {
+                                            if let Err(e) = crate::handlers::action::run(
+                                                a,
+                                                &config.rules[0],
+                                                &path,
+                                            ) {
+                                                println!("{}", e)
+                                            }
+                                        }
+                                    }
+                                }
+                                crate::config::Filter::Size { size_gt, size_lt } => {
+                                    let size = if size_gt.is_some() {
+                                        size_gt.unwrap()
+                                    } else {
+                                        size_lt.unwrap()
+                                    };
+                                    println!("size {}", size)
+                                }
+                                crate::config::Filter::Age { days_older_than } => {
+                                    println!("age {}", days_older_than.unwrap_or_default())
+                                }
+                            }
+                        }
+
+                        results.push(FileContext {
+                            path: path.clone(),
+                            metadata: fmeta,
+                            content_info: None,
+                            parent_dir: get_parent_dir(&path),
+                            base_dir: std::env::current_dir().unwrap(),
+                        })
                     }
                     Err(e) => {
                         if !quiet {
@@ -105,5 +151,12 @@ fn get_access_time(metadata: &Metadata) -> Option<SystemTime> {
         // Failure case: The pattern did not match, it must be an Err.
         // We can print a message or log the error before returning None.
         None
+    }
+}
+
+fn get_parent_dir(p: &Path) -> PathBuf {
+    match p.parent() {
+        Some(parent) => parent.to_path_buf(),
+        None => PathBuf::new(),
     }
 }
