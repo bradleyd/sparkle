@@ -5,7 +5,11 @@ use std::time::SystemTime;
 use std::{fs::Metadata, os::unix::fs::MetadataExt, path::Path};
 
 pub fn get_file_type(f: &Path) -> crate::file_metadata::FileType {
-    //println!("fmt {:?}", f);
+    let extension_result = guess_mime(f);
+    if extension_result != FileType::Unknown {
+        return extension_result;
+    }
+
     let mime = mime_guess2::from_path(f);
     if mime.is_empty() {
         let fmt = FileFormat::from_file(f);
@@ -20,24 +24,16 @@ pub fn get_file_type(f: &Path) -> crate::file_metadata::FileType {
             Err(_) => FileType::Unknown,
         }
     } else {
-        //println!("mime guess {}", mime.first_or_octet_stream());
         let mime = mime.first_or_octet_stream();
-        let result = match mime {
+        match mime {
             m if m == mime::IMAGE_GIF => FileType::Image,
             m if m == mime::IMAGE_BMP => FileType::Image,
-            m if m == mime::IMAGE_JPEG => FileType::Image,
             m if m == mime::IMAGE_JPEG => FileType::Image,
             m if m == mime::IMAGE_SVG => FileType::Image,
             m if m == mime::APPLICATION_PDF => FileType::Document,
             m if m == mime::APPLICATION_JAVASCRIPT => FileType::Code,
             m if m == mime::TEXT_PLAIN => FileType::Text,
             _ => FileType::Unknown,
-        };
-
-        if result.eq(&FileType::Unknown) {
-            guess_mime(f)
-        } else {
-            result
         }
     }
 }
@@ -89,5 +85,91 @@ pub fn get_age_category(metadata: &Metadata) -> crate::file_metadata::AgeCategor
         }
     } else {
         file_metadata::AgeCategory::Old
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+
+    #[test]
+    fn test_get_file_type_by_extension() {
+        assert_eq!(get_file_type(Path::new("test.java")), FileType::Code);
+        assert_eq!(get_file_type(Path::new("test.rs")), FileType::Code);
+        assert_eq!(get_file_type(Path::new("test.js")), FileType::Code);
+        assert_eq!(get_file_type(Path::new("test.go")), FileType::Code);
+        assert_eq!(get_file_type(Path::new("test.rb")), FileType::Code);
+        assert_eq!(get_file_type(Path::new("test.ex")), FileType::Code);
+    }
+
+    #[test]
+    fn test_get_file_type_documents() {
+        assert_eq!(get_file_type(Path::new("readme.md")), FileType::Document);
+    }
+
+    #[test]
+    fn test_get_file_type_configuration() {
+        assert_eq!(
+            get_file_type(Path::new("config.yml")),
+            FileType::Configuration
+        );
+        assert_eq!(
+            get_file_type(Path::new("config.yaml")),
+            FileType::Configuration
+        );
+        assert_eq!(
+            get_file_type(Path::new("config.toml")),
+            FileType::Configuration
+        );
+    }
+
+    #[test]
+    fn test_get_file_type_text() {
+        assert_eq!(get_file_type(Path::new("notes.txt")), FileType::Text);
+    }
+
+    #[test]
+    fn test_get_file_type_unknown() {
+        assert_eq!(get_file_type(Path::new("file.xyz")), FileType::Unknown);
+        assert_eq!(get_file_type(Path::new("no_extension")), FileType::Unknown);
+    }
+
+    #[test]
+    fn test_get_file_type_case_insensitive() {
+        assert_eq!(get_file_type(Path::new("TEST.JAVA")), FileType::Code);
+        assert_eq!(
+            get_file_type(Path::new("Config.YML")),
+            FileType::Configuration
+        );
+    }
+
+    #[test]
+    fn test_get_file_size_category_with_test_files() {
+        use std::fs;
+        use tempfile::NamedTempFile;
+
+        let tiny_file = NamedTempFile::new().unwrap();
+        fs::write(&tiny_file, vec![0u8; 512]).unwrap();
+        let tiny_metadata = fs::metadata(tiny_file.path()).unwrap();
+        assert!(matches!(
+            get_file_size_category(&tiny_metadata),
+            SizeCategory::Tiny
+        ));
+
+        let small_file = NamedTempFile::new().unwrap();
+        fs::write(&small_file, vec![0u8; 5000]).unwrap();
+        let small_metadata = fs::metadata(small_file.path()).unwrap();
+        assert!(matches!(
+            get_file_size_category(&small_metadata),
+            SizeCategory::Small
+        ));
+
+        let medium_file = NamedTempFile::new().unwrap();
+        fs::write(&medium_file, vec![0u8; 5_000_000]).unwrap();
+        let medium_metadata = fs::metadata(medium_file.path()).unwrap();
+        assert!(matches!(
+            get_file_size_category(&medium_metadata),
+            SizeCategory::Medium
+        ));
     }
 }

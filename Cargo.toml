@@ -3,6 +3,10 @@ name = "sparkle"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "sparkle"
+path = "src/lib.rs"
+
 [dependencies]
 file-format = "0.27.0"
 clap = { version = "4.5.41", features = ["derive"] }
@@ -15,3 +19,6 @@ tracing-subscriber = { version = "0.3", features = [
   "fmt",
   "json",
 ] }
+
+[dev-dependencies]
+tempfile = "3.8"
