@@ -1,53 +1,55 @@
-use std::path::Path;
-use std::path::PathBuf;
+mod cli;
 mod config;
 mod content_info;
 mod crawl;
 mod file_detector;
 mod file_metadata;
 mod handlers;
-mod rule;
+mod metrics;
 mod utils;
-use crate::content_info::ContentInfo;
+use crate::cli::Cli;
 use crate::crawl::search_dir;
-use crate::file_metadata::FileMetadata;
+use crate::file_metadata::FileContext;
 use clap::Parser;
-
-#[derive(Parser)]
-struct Cli {
-    /// directory to search
-    #[arg(long, short)]
-    directory: String,
-}
-
-#[derive(Debug)]
-pub struct FileContext {
-    pub path: PathBuf,
-    pub metadata: FileMetadata,
-    pub content_info: Option<ContentInfo>, // MIME type, etc.
-    pub parent_dir: PathBuf,
-    pub base_dir: PathBuf, // The root we're organizing from
-}
+use file_metadata::FileMetadataError;
+use tracing_subscriber::{EnvFilter, fmt};
 
 fn main() {
-    let cli = Cli::parse();
-    let config = config::Config::new("./config.toml.example").expect("Cannot parse config");
-    let mut results: Vec<FileContext> = Vec::new();
-    search_dir(Path::new(&cli.directory), &mut results, &config, false);
-    for f in results.iter() {
-        let mime = f
-            .content_info
-            .as_ref()
-            .map(|c| c.mime_type.as_str())
-            .unwrap_or("application/octet-stream");
-        let ftype = &f.metadata.file_type;
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
 
-        println!(
-            "name {}, type {}, ftype: {}",
-            f.path.as_path().to_string_lossy(),
-            mime,
-            ftype.as_str()
-        );
-    }
+    let _cli = Cli::parse();
+    let config = config::Config::new("./config.toml.example").expect("Cannot parse config");
+    let results: Vec<Result<FileContext, FileMetadataError>> = config
+        .rules
+        .iter()
+        .flat_map(|rule| {
+            rule.locations
+                .iter()
+                .flat_map(|d| match search_dir(d, &config, rule, false) {
+                    Ok(file_contexts) => file_contexts.into_iter().map(Ok).collect::<Vec<_>>(),
+                    Err(e) => vec![Err(e)],
+                })
+        })
+        .collect();
+    //println!("Results: {:?}", results);
+    tracing::info!(files = results.len(), "Files scanned");
+
+    //for f in results.iter() {
+    //    let mime = f
+    //        .content_info
+    //        .as_ref()
+    //        .map(|c| c.mime_type.as_str())
+    //        .unwrap_or("application/octet-stream");
+    //    let ftype = &f.metadata.file_type;
+
+    //    println!(
+    //        "name {}, type {}, ftype: {}",
+    //        f.path.as_path().to_string_lossy(),
+    //        mime,
+    //        ftype.as_str()
+    //    );
+    //}
     // next phase is rule phase
 }

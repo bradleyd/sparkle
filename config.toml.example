@@ -1,6 +1,6 @@
 [[rules]]
 name = "Find PDFs"
-locations = ["~/Downloads"]
+locations = ["/Users/bradleydsmith/Projects/sparkle/test-examples/"]
 subfolders = true
 
 [[rules.filters]]
@@ -8,3 +8,16 @@ extension = "pdf"
 
 [[rules.actions]]
 move = "/tmp"
+
+[[rules]]
+name = "Find javascript"
+locations = ["/Users/bradleydsmith/Projects/sparkle/test-examples/"]
+subfolders = true
+
+[[rules.filters]]
+extension = "js" 
+
+[[rules.actions]]
+echo = "found js"
+
+

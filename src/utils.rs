@@ -4,20 +4,12 @@ use std::{
     io::{self},
 };
 
-use serde::de;
-
 pub fn move_file(source_path: &Path, destination_path: &Path) -> std::io::Result<()> {
     let file_name = source_path
         .file_name()
         .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "source has no filename"))?;
 
     let destination = destination_path.join(file_name);
-    println!(
-        "source {} to destination {}",
-        source_path.to_string_lossy(),
-        destination.to_string_lossy()
-    );
-
     let source_meta = fs::metadata(source_path)?;
     if source_meta.is_dir() {
         return Err(io::Error::new(
@@ -47,11 +39,6 @@ pub fn copy_file(source_path: &Path, destination_path: &Path) -> std::io::Result
 
     let destination = destination_path.join(file_name);
 
-    println!(
-        "source {} to destination {}",
-        source_path.to_string_lossy(),
-        destination_path.to_string_lossy()
-    );
     let source_meta = fs::metadata(source_path)?;
     if source_meta.is_dir() {
         return Err(io::Error::new(

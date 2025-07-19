@@ -2,10 +2,10 @@ use crate::file_metadata::{self, AgeCategory, FileType, SizeCategory};
 use file_format::{FileFormat, Kind};
 use mime_guess2::mime;
 use std::time::SystemTime;
-use std::{fs::Metadata, os::unix::fs::MetadataExt, path::Path, u64};
+use std::{fs::Metadata, os::unix::fs::MetadataExt, path::Path};
 
 pub fn get_file_type(f: &Path) -> crate::file_metadata::FileType {
-    println!("fmt {:?}", f);
+    //println!("fmt {:?}", f);
     let mime = mime_guess2::from_path(f);
     if mime.is_empty() {
         let fmt = FileFormat::from_file(f);
@@ -20,7 +20,7 @@ pub fn get_file_type(f: &Path) -> crate::file_metadata::FileType {
             Err(_) => FileType::Unknown,
         }
     } else {
-        println!("mime guess {}", mime.first_or_octet_stream());
+        //println!("mime guess {}", mime.first_or_octet_stream());
         let mime = mime.first_or_octet_stream();
         let result = match mime {
             m if m == mime::IMAGE_GIF => FileType::Image,
@@ -30,6 +30,7 @@ pub fn get_file_type(f: &Path) -> crate::file_metadata::FileType {
             m if m == mime::IMAGE_SVG => FileType::Image,
             m if m == mime::APPLICATION_PDF => FileType::Document,
             m if m == mime::APPLICATION_JAVASCRIPT => FileType::Code,
+            m if m == mime::TEXT_PLAIN => FileType::Text,
             _ => FileType::Unknown,
         };
 
@@ -52,13 +53,14 @@ fn guess_mime(path: &Path) -> FileType {
         "java" | "rs" | "rb" | "ex" | "go" | "js" => FileType::Code,
         "md" => FileType::Document,
         "yml" | "yaml" | "toml" => FileType::Configuration,
+        "txt" => FileType::Text,
         _ => FileType::Unknown,
     }
 }
 
 pub fn get_file_size_category(metadata: &Metadata) -> crate::file_metadata::SizeCategory {
     let fsize = metadata.size();
-    println!("file size category bytes {:?}", fsize);
+    //println!("file size category bytes {:?}", fsize);
     match fsize {
         0..1024 => SizeCategory::Tiny,
         1024..=1_048_576 => SizeCategory::Small,
@@ -77,7 +79,7 @@ fn system_time_to_days(time: SystemTime) -> u64 {
 pub fn get_age_category(metadata: &Metadata) -> crate::file_metadata::AgeCategory {
     if let Ok(fdate) = metadata.modified() {
         let days = system_time_to_days(fdate);
-        println!("file age category days {:?}", days);
+        //println!("file age category days {:?}", days);
         match days {
             0 => AgeCategory::Recent,
             1..=7 => AgeCategory::Week,

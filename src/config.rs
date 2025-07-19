@@ -49,6 +49,9 @@ pub enum Filter {
     Age {
         days_older_than: Option<u32>,
     },
+    NameContains {
+        name: String,
+    },
 }
 
 impl Config {
