@@ -56,7 +56,6 @@ fn guess_mime(path: &Path) -> FileType {
 
 pub fn get_file_size_category(metadata: &Metadata) -> crate::file_metadata::SizeCategory {
     let fsize = metadata.size();
-    //println!("file size category bytes {:?}", fsize);
     match fsize {
         0..1024 => SizeCategory::Tiny,
         1024..=1_048_576 => SizeCategory::Small,
@@ -75,7 +74,6 @@ fn system_time_to_days(time: SystemTime) -> u64 {
 pub fn get_age_category(metadata: &Metadata) -> crate::file_metadata::AgeCategory {
     if let Ok(fdate) = metadata.modified() {
         let days = system_time_to_days(fdate);
-        //println!("file age category days {:?}", days);
         match days {
             0 => AgeCategory::Recent,
             1..=7 => AgeCategory::Week,

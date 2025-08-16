@@ -9,8 +9,8 @@ pub fn run(actions: &[crate::config::Action], file_path: &Path) -> Result<(), Er
                 tracing::info!("running action echo: {}", message);
             }
             crate::config::Action::Move(path_buf) => {
-                tracing::info!("moving file to {}", path_buf.to_string_lossy());
-                if let Err(e) = crate::utils::move_file(&file_path, &path_buf) {
+                tracing::info!("Moving file to {}", path_buf.to_string_lossy());
+                if let Err(e) = crate::utils::move_file(file_path, path_buf) {
                     tracing::error!("There was an issue trying to run the move action {}", e);
                     return Err(Error::new(
                         io::ErrorKind::Other,
@@ -25,11 +25,11 @@ pub fn run(actions: &[crate::config::Action], file_path: &Path) -> Result<(), Er
             }
             crate::config::Action::Copy(path_buf) => {
                 tracing::info!("coping file to {}", path_buf.to_string_lossy());
-                if let Err(e) = crate::utils::copy_file(&file_path, &path_buf) {
+                if let Err(e) = crate::utils::copy_file(file_path, path_buf) {
                     tracing::error!("There was an issue trying to run the copy action {}", e);
                     return Err(Error::new(
                         io::ErrorKind::Other,
-                        format!("Cannot copy a directory named '{}'", e.to_string()),
+                        format!("Cannot copy a directory named '{}'", e),
                     ));
                 }
                 tracing::info!(

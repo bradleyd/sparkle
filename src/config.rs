@@ -33,7 +33,7 @@ pub enum Action {
     Compress {
         format: CompressionFormat,
     },
-    SetPermissions(u32),
+    SetPermissions(()),
 }
 
 #[derive(Deserialize, Debug)]
@@ -42,15 +42,15 @@ pub enum Filter {
     Extension {
         extension: String,
     },
-    Size {
-        size_gt: Option<u64>,
-        size_lt: Option<u64>,
+    NameContains {
+        name_contains: String,
     },
     Age {
         days_older_than: Option<u32>,
     },
-    NameContains {
-        name: String,
+    Size {
+        size_gt: Option<u64>,
+        size_lt: Option<u64>,
     },
 }
 
@@ -86,7 +86,7 @@ actions = [
         let mut temp_file = NamedTempFile::new().unwrap();
         write!(temp_file, "{}", toml_content).unwrap();
         let config = Config::new(temp_file.path().to_str().unwrap()).unwrap();
-        
+
         assert_eq!(config.rules.len(), 1);
         assert_eq!(config.rules[0].name, "test_rule");
         assert_eq!(config.rules[0].locations.len(), 1);
@@ -98,10 +98,10 @@ actions = [
     #[test]
     fn test_config_new_invalid_toml() {
         let invalid_toml = "invalid toml content [[[";
-        
+
         let mut temp_file = NamedTempFile::new().unwrap();
         write!(temp_file, "{}", invalid_toml).unwrap();
-        
+
         let result = Config::new(temp_file.path().to_str().unwrap());
         assert!(result.is_err());
     }
@@ -121,7 +121,7 @@ rules = []
         let mut temp_file = NamedTempFile::new().unwrap();
         write!(temp_file, "{}", toml_content).unwrap();
         let config = Config::new(temp_file.path().to_str().unwrap()).unwrap();
-        
+
         assert_eq!(config.rules.len(), 0);
     }
 
@@ -136,7 +136,7 @@ filters = [
     { extension = "log" },
     { size_gt = 1024, size_lt = 1048576 },
     { days_older_than = 30 },
-    { name = "backup" }
+    { name_contains = "backup" }
 ]
 actions = [
     { echo = "Processing" }
@@ -146,12 +146,17 @@ actions = [
         let mut temp_file = NamedTempFile::new().unwrap();
         write!(temp_file, "{}", toml_content).unwrap();
         let config = Config::new(temp_file.path().to_str().unwrap()).unwrap();
-        
+
         assert_eq!(config.rules[0].filters.len(), 4);
-        
+
         match &config.rules[0].filters[0] {
             Filter::Extension { extension } => assert_eq!(extension, "log"),
             _ => panic!("Expected Extension filter"),
+        }
+
+        match &config.rules[0].filters[3] {
+            Filter::NameContains { name_contains } => assert_eq!(name_contains, "backup"),
+            _ => panic!("Expected NameContains filter"),
         }
     }
 
@@ -176,9 +181,38 @@ actions = [
         let mut temp_file = NamedTempFile::new().unwrap();
         write!(temp_file, "{}", toml_content).unwrap();
         let config = Config::new(temp_file.path().to_str().unwrap()).unwrap();
-        
+
         assert_eq!(config.rules[0].actions.len(), 6);
-        
+
+        match &config.rules[0].actions[0] {
+            Action::Echo(msg) => assert_eq!(msg, "Test message"),
+            _ => panic!("Expected Echo action"),
+        }
+    }
+    #[test]
+    fn test_name_contains() {
+        let toml_content = r#"
+[[rules]]
+name = "action_test"
+locations = ["/tmp"]
+subfolders = false
+filters = [{ name_contains = "tmp" }]
+actions = [
+    { echo = "Test message" },
+    { move = "/archive" },
+    { copy = "/backup" },
+    "delete",
+    { rename = { pattern = "old", replacement = "new" } },
+    { set_permissions = 644 }
+]
+"#;
+
+        let mut temp_file = NamedTempFile::new().unwrap();
+        write!(temp_file, "{}", toml_content).unwrap();
+        let config = Config::new(temp_file.path().to_str().unwrap()).unwrap();
+
+        assert_eq!(config.rules[0].actions.len(), 6);
+
         match &config.rules[0].actions[0] {
             Action::Echo(msg) => assert_eq!(msg, "Test message"),
             _ => panic!("Expected Echo action"),

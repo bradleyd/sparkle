@@ -5,6 +5,8 @@ use std::{
 };
 
 pub fn move_file(source_path: &Path, destination_path: &Path) -> std::io::Result<()> {
+    tracing::debug!("Moving file {:?} to {:?}", source_path, destination_path);
+    // TODO check if destination_path exists first
     let file_name = source_path
         .file_name()
         .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "source has no filename"))?;

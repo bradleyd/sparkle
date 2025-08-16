@@ -12,22 +12,22 @@ use crate::crawl::search_dir;
 use crate::file_metadata::FileContext;
 use clap::Parser;
 use file_metadata::FileMetadataError;
-use tracing_subscriber::{EnvFilter, fmt};
+use tracing_subscriber::EnvFilter;
 
 fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .init();
 
-    let _cli = Cli::parse();
-    let config = config::Config::new("./config.toml.example").expect("Cannot parse config");
+    let cli = Cli::parse();
+    let config = config::Config::new(&cli.configuration).expect("Cannot parse config");
     let results: Vec<Result<FileContext, FileMetadataError>> = config
         .rules
         .iter()
         .flat_map(|rule| {
             rule.locations
                 .iter()
-                .flat_map(|d| match search_dir(d, &config, rule, false) {
+                .flat_map(|d| match search_dir(d, &config, rule, cli.verbose) {
                     Ok(file_contexts) => file_contexts.into_iter().map(Ok).collect::<Vec<_>>(),
                     Err(e) => vec![Err(e)],
                 })

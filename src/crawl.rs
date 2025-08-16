@@ -45,7 +45,7 @@ pub fn search_dir(
         let path = entry.path();
 
         // If the entry is a directory, recursively search it
-        if path.is_dir() {
+        if path.is_dir() && rule.subfolders {
             search_dir(&path, config, rule, quiet)?;
         } else {
             // We have a file, check if file matches criteria
@@ -98,10 +98,10 @@ fn matches_filters(path: &Path, filters: &[Filter]) -> bool {
             .and_then(|ext| ext.to_str())
             .map(|ext_str| ext_str.eq_ignore_ascii_case(extension))
             .unwrap_or(false),
-        Filter::NameContains { name } => path
+        Filter::NameContains { name_contains } => path
             .file_name()
             .and_then(|name| name.to_str())
-            .map(|name_str| name_str.contains(name))
+            .map(|name_str| name_str.contains(name_contains))
             .unwrap_or(false),
         Filter::Size { size_gt, size_lt } => {
             if let Ok(metadata) = std::fs::metadata(path) {
