@@ -30,10 +30,6 @@ pub enum Action {
         pattern: String,
         replacement: String,
     },
-    Compress {
-        format: CompressionFormat,
-    },
-    SetPermissions(()),
 }
 
 #[derive(Deserialize, Debug)]
@@ -90,7 +86,7 @@ actions = [
         assert_eq!(config.rules.len(), 1);
         assert_eq!(config.rules[0].name, "test_rule");
         assert_eq!(config.rules[0].locations.len(), 1);
-        assert_eq!(config.rules[0].subfolders, true);
+        assert!(config.rules[0].subfolders);
         assert_eq!(config.rules[0].filters.len(), 1);
         assert_eq!(config.rules[0].actions.len(), 1);
     }

@@ -9,7 +9,7 @@ pub fn move_file(source_path: &Path, destination_path: &Path) -> std::io::Result
     // TODO check if destination_path exists first
     let file_name = source_path
         .file_name()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "source has no filename"))?;
+        .ok_or_else(|| std::io::Error::other("Source has no filename"))?;
 
     let destination = destination_path.join(file_name);
     let source_meta = fs::metadata(source_path)?;
@@ -37,7 +37,7 @@ pub fn move_file(source_path: &Path, destination_path: &Path) -> std::io::Result
 pub fn copy_file(source_path: &Path, destination_path: &Path) -> std::io::Result<u64> {
     let file_name = source_path
         .file_name()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "source has no filename"))?;
+        .ok_or_else(|| std::io::Error::other("Source has no filename"))?;
 
     let destination = destination_path.join(file_name);
 

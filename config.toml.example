@@ -10,14 +10,14 @@ extension = "pdf"
 move = "/tmp"
 
 [[rules]]
-name = "Find javascript"
+name = "rename vm.yaml"
 locations = ["/Users/bradleydsmith/Projects/sparkle/test-examples/"]
-subfolders = true
+subfolders = false
 
 [[rules.filters]]
-extension = "js" 
+name_contains = "vm" 
 
 [[rules.actions]]
-echo = "found js"
+rename = {pattern = "vm.yaml", replacement = "vm4.yaml"}
 
 

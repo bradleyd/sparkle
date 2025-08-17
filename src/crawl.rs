@@ -16,6 +16,7 @@ pub fn search_dir(
     if !dir.is_dir() {
         return Ok(Vec::new());
     }
+    tracing::info!("Running rule {}", rule.name);
 
     // Read the directory entries
     let entries = match fs::read_dir(dir) {
