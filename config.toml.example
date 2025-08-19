@@ -1,6 +1,6 @@
 [[rules]]
 name = "Find PDFs"
-locations = ["/Users/bradleydsmith/Projects/sparkle/test-examples/"]
+locations = ["/Users/brads/src/sparkle/test-examples/"]
 subfolders = true
 
 [[rules.filters]]

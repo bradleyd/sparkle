@@ -7,7 +7,8 @@ pub fn run(actions: &[crate::config::Action], file_path: &Path) -> Result<(), Er
     for action in actions {
         match action {
             crate::config::Action::Echo(message) => {
-                tracing::info!("Running action echo: {}", message);
+                tracing::debug!("Running action: echo, result: {}", message);
+                tracing::info!("{}", message);
             }
             crate::config::Action::Move(path_buf) => {
                 // check if destination directory exists
@@ -20,6 +21,7 @@ pub fn run(actions: &[crate::config::Action], file_path: &Path) -> Result<(), Er
                 };
 
                 tracing::info!("Moving file to {}", path_buf.to_string_lossy());
+
                 if let Err(e) = crate::utils::move_file(file_path, path_buf) {
                     tracing::error!("There was an issue trying to run the move action {}", e);
                     return Err(std::io::Error::other(format!(
@@ -27,6 +29,7 @@ pub fn run(actions: &[crate::config::Action], file_path: &Path) -> Result<(), Er
                         e
                     )));
                 };
+
                 tracing::info!(
                     "Moved file {} to {}",
                     file_path.to_string_lossy(),

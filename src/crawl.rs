@@ -11,12 +11,19 @@ pub fn search_dir(
     config: &crate::config::Config,
     rule: &crate::config::Rule,
     quiet: bool,
+    dry_run: bool,
 ) -> Result<Vec<FileContext>, FileMetadataError> {
     // bail early
     if !dir.is_dir() {
         return Ok(Vec::new());
     }
     tracing::info!("Running rule {}", rule.name);
+
+    if dry_run {
+        for rule in &rule.actions {
+            tracing::info!("Action {} would have run", rule);
+        }
+    }
 
     // Read the directory entries
     let entries = match fs::read_dir(dir) {
@@ -47,14 +54,16 @@ pub fn search_dir(
 
         // If the entry is a directory, recursively search it
         if path.is_dir() && rule.subfolders {
-            search_dir(&path, config, rule, quiet)?;
+            search_dir(&path, config, rule, quiet, dry_run)?;
         } else {
             // We have a file, check if file matches criteria
             let fmeta = FileMetadata::build(&path, quiet)?;
             if matches_filters(&path, &rule.filters) {
-                if let Err(e) = crate::handlers::action::run(&rule.actions, &path) {
-                    tracing::error!("Error applying actions to {}: {}", path.display(), e);
-                    continue;
+                if !dry_run {
+                    if let Err(e) = crate::handlers::action::run(&rule.actions, &path) {
+                        tracing::error!("Error applying actions to {}: {}", path.display(), e);
+                        continue;
+                    }
                 }
                 let metadata = fmeta.clone();
                 results.push(FileContext {

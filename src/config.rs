@@ -1,6 +1,7 @@
 use serde::Deserialize;
-use std::fs;
+use std::fmt::write;
 use std::path::PathBuf;
+use std::{fmt, fs};
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
@@ -30,6 +31,21 @@ pub enum Action {
         pattern: String,
         replacement: String,
     },
+}
+
+impl fmt::Display for Action {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Action::Echo(_) => write!(f, "Echo"),
+            Action::Move(path_buf) => write!(f, "Move"),
+            Action::Copy(path_buf) => write!(f, "Copy"),
+            Action::Delete => write!(f, "Delete"),
+            Action::Rename {
+                pattern,
+                replacement,
+            } => write!(f, "Rename"),
+        }
+    }
 }
 
 #[derive(Deserialize, Debug)]

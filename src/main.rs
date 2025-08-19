@@ -29,16 +29,17 @@ fn main() {
         .rules
         .iter()
         .flat_map(|rule| {
-            rule.locations
-                .iter()
-                .flat_map(|d| match search_dir(d, &config, rule, cli.verbose) {
+            rule.locations.iter().flat_map(|d| {
+                match search_dir(d, &config, rule, cli.verbose, cli.dry_run) {
                     Ok(file_contexts) => file_contexts.into_iter().map(Ok).collect::<Vec<_>>(),
                     Err(e) => vec![Err(e)],
-                })
+                }
+            })
         })
         .collect();
     tracing::info!(files = results.len(), "Files scanned");
 
+    if cli.dry_run && cli.verbose {}
     //for f in results.iter() {
     //    let mime = f
     //        .content_info
