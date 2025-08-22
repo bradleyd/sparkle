@@ -53,8 +53,12 @@ pub fn search_dir(
         let path = entry.path();
 
         // If the entry is a directory, recursively search it
-        if path.is_dir() && rule.subfolders {
-            search_dir(&path, config, rule, quiet, dry_run)?;
+        if path.is_dir() {
+            if rule.subfolders {
+                search_dir(&path, config, rule, quiet, dry_run)?;
+            } else {
+                continue;
+            }
         } else {
             // We have a file, check if file matches criteria
             let fmeta = FileMetadata::build(&path, quiet)?;

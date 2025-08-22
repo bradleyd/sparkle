@@ -20,7 +20,7 @@ pub fn run(actions: &[crate::config::Action], file_path: &Path) -> Result<(), Er
                     return Err(std::io::Error::other(msg));
                 };
 
-                tracing::info!("Moving file to {}", path_buf.to_string_lossy());
+                tracing::debug!("Moving file to {}", path_buf.to_string_lossy());
 
                 if let Err(e) = crate::utils::move_file(file_path, path_buf) {
                     tracing::error!("There was an issue trying to run the move action {}", e);
