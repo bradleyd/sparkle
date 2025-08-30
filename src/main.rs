@@ -11,6 +11,7 @@ use crate::cli::Cli;
 use crate::crawl::search_dir;
 use crate::file_metadata::FileContext;
 use clap::Parser;
+use comfy_table::Table;
 use file_metadata::FileMetadataError;
 use tracing_subscriber::EnvFilter;
 
@@ -33,23 +34,23 @@ fn main() {
                 })
         })
         .collect();
-    //println!("Results: {:?}", results);
+
+    tracing::info!("✨Sparkled!");
     tracing::info!(files = results.len(), "Files scanned");
 
-    //for f in results.iter() {
-    //    let mime = f
-    //        .content_info
-    //        .as_ref()
-    //        .map(|c| c.mime_type.as_str())
-    //        .unwrap_or("application/octet-stream");
-    //    let ftype = &f.metadata.file_type;
+    for f in results {
+        match f {
+            Ok(fmeta) => {
+                let mut table = Table::new();
+                table.set_header(vec!["Name", "Mime", "Type"]).add_row(vec![
+                    fmeta.path.to_string_lossy(),
+                    std::borrow::Cow::Borrowed(fmeta.metadata.file_type.mime_hint.unwrap()),
+                    std::borrow::Cow::Borrowed(fmeta.metadata.file_type.category.as_str()),
+                ]);
 
-    //    println!(
-    //        "name {}, type {}, ftype: {}",
-    //        f.path.as_path().to_string_lossy(),
-    //        mime,
-    //        ftype.as_str()
-    //    );
-    //}
-    // next phase is rule phase
+                println!("{table}");
+            }
+            Err(e) => println!("Got error from results {:?}", e),
+        }
+    }
 }

@@ -6,7 +6,7 @@ pub fn run(actions: &[crate::config::Action], file_path: &Path) -> Result<(), Er
     for action in actions {
         match action {
             crate::config::Action::Echo(message) => {
-                tracing::info!("running action echo: {}", message);
+                tracing::info!("Running action Echo: {}", message);
             }
             crate::config::Action::Move(path_buf) => {
                 tracing::info!("Moving file to {}", path_buf.to_string_lossy());

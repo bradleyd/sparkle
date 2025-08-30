@@ -1,6 +1,6 @@
 use serde::Deserialize;
-use std::fs;
 use std::path::PathBuf;
+use std::{fmt, fs};
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
@@ -52,6 +52,39 @@ pub enum Filter {
         size_gt: Option<u64>,
         size_lt: Option<u64>,
     },
+}
+impl Filter {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Filter::Extension { extension } => "Extension",
+            Filter::NameContains { name_contains } => "NameContains",
+            Filter::Age { days_older_than } => "Age",
+            Filter::Size { size_gt, size_lt } => "Size",
+        }
+    }
+}
+
+impl fmt::Display for Filter {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Filter::Extension { extension } => write!(f, "Filter by Extension: {}", extension),
+            Filter::NameContains { name_contains } => {
+                write!(f, "Filter by Name Contains: {}", name_contains)
+            }
+            Filter::Age { days_older_than } => match days_older_than {
+                Some(n) => write!(f, "Filter by Age (days older than): {}", n),
+                None => write!(f, "Filter by Age: No threshold specified"),
+            },
+            Filter::Size { size_gt, size_lt } => match (size_gt, size_lt) {
+                (Some(n1), Some(n2)) => write!(
+                    f,
+                    "Filter by Size: Greater than {} and Less than {}",
+                    n1, n2
+                ),
+                _ => write!(f, "Filter by Size: No thresholds specified"),
+            },
+        }
+    }
 }
 
 impl Config {

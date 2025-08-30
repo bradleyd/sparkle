@@ -16,6 +16,11 @@ pub fn search_dir(
     if !dir.is_dir() {
         return Ok(Vec::new());
     }
+    tracing::info!(
+        "Searching directory: {}\nUsing rule: {}",
+        dir.to_string_lossy(),
+        rule.name
+    );
 
     // Read the directory entries
     let entries = match fs::read_dir(dir) {
@@ -51,6 +56,16 @@ pub fn search_dir(
             // We have a file, check if file matches criteria
             let fmeta = FileMetadata::build(&path, quiet)?;
             if matches_filters(&path, &rule.filters) {
+                tracing::info!(
+                    "Matched {}",
+                    &rule
+                        .filters
+                        .iter()
+                        .map(|f| f.to_string())
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                );
+
                 if let Err(e) = crate::handlers::action::run(&rule.actions, &path) {
                     tracing::error!("Error applying actions to {}: {}", path.display(), e);
                     continue;
@@ -69,27 +84,27 @@ pub fn search_dir(
     Ok(results)
 }
 
-fn get_created_time(metadata: &Metadata) -> Option<SystemTime> {
-    if let Ok(created_at) = metadata.created() {
-        // Success case: The pattern matched, we have the creation time.
-        Some(created_at)
-    } else {
-        // Failure case: The pattern did not match, it must be an Err.
-        // We can print a message or log the error before returning None.
-        None
-    }
-}
-
-fn get_access_time(metadata: &Metadata) -> Option<SystemTime> {
-    if let Ok(atime) = metadata.accessed() {
-        // Success case: The pattern matched, we have the creation time.
-        Some(atime)
-    } else {
-        // Failure case: The pattern did not match, it must be an Err.
-        // We can print a message or log the error before returning None.
-        None
-    }
-}
+//fn get_created_time(metadata: &Metadata) -> Option<SystemTime> {
+//    if let Ok(created_at) = metadata.created() {
+//        // Success case: The pattern matched, we have the creation time.
+//        Some(created_at)
+//    } else {
+//        // Failure case: The pattern did not match, it must be an Err.
+//        // We can print a message or log the error before returning None.
+//        None
+//    }
+//}
+//
+//fn get_access_time(metadata: &Metadata) -> Option<SystemTime> {
+//    if let Ok(atime) = metadata.accessed() {
+//        // Success case: The pattern matched, we have the creation time.
+//        Some(atime)
+//    } else {
+//        // Failure case: The pattern did not match, it must be an Err.
+//        // We can print a message or log the error before returning None.
+//        None
+//    }
+//}
 
 fn matches_filters(path: &Path, filters: &[Filter]) -> bool {
     filters.iter().any(|filter| match filter {

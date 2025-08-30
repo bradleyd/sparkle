@@ -1,5 +1,7 @@
 use crate::content_info::ContentInfo;
-use crate::file_detector::{get_age_category, get_file_size_category, get_file_type};
+use crate::file_detector::{
+    Category, DetectResult, detect2, get_age_category, get_file_size_category, get_file_type,
+};
 use std::collections::HashMap;
 use std::fmt;
 use std::fs::{self, Metadata};
@@ -69,7 +71,7 @@ pub struct FileMetadata {
     // Derived/computed info
     pub size_category: SizeCategory, // Tiny, Small, Medium, Large, Huge
     pub age_category: AgeCategory,   // Recent, Week, Month, Year, Old
-    pub file_type: FileType,         // Based on extension + content
+    pub file_type: DetectResult,     // Based on extension + content
 }
 
 impl Clone for FileMetadata {
@@ -143,6 +145,20 @@ impl FileMetadata {
         let metadata = fs::metadata(path)?;
         match metadata.modified() {
             Ok(modified_time) => {
+                let ftype = detect2(path);
+                let res = match ftype {
+                    Ok(detect) => detect,
+                    Err(e) => {
+                        tracing::error!("There was an error detecting file type: {}", e);
+                        DetectResult {
+                            category: Category::Unknown,
+                            mime_hint: None,
+                            confidence: 0,
+                            details: None,
+                        }
+                    }
+                };
+
                 let fm = FileMetadata {
                     size: metadata.len(),
                     modified: modified_time,
@@ -155,8 +171,9 @@ impl FileMetadata {
                     extended_attributes: HashMap::new(),
                     size_category: get_file_size_category(&metadata),
                     age_category: get_age_category(&metadata),
-                    file_type: get_file_type(path),
+                    file_type: res,
                 };
+                tracing::debug!("FileMetadata {:?}", fm);
                 Ok(fm)
             }
             Err(e) => {

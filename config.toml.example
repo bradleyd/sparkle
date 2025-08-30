@@ -18,6 +18,6 @@ subfolders = true
 extension = "js" 
 
 [[rules.actions]]
-echo = "found js"
+echo = "====================found js======================="
 
 
