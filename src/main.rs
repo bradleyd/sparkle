@@ -5,7 +5,6 @@ mod crawl;
 mod file_detector;
 mod file_metadata;
 mod handlers;
-mod metrics;
 mod utils;
 use crate::cli::Cli;
 use crate::crawl::search_dir;
@@ -20,18 +19,23 @@ fn main() {
         .with_env_filter(EnvFilter::from_default_env())
         .init();
 
+    // TODO create default directories to move files into using cli
+    // TODO add dry-run
+    // TODO rename when using a glob filter like name_contains, will overwrite the destionation
+    // file with the last file from the filter applied.
     let cli = Cli::parse();
     let config = config::Config::new(&cli.configuration).expect("Cannot parse config");
+    tracing::debug!("config: {:?}", config);
     let results: Vec<Result<FileContext, FileMetadataError>> = config
         .rules
         .iter()
         .flat_map(|rule| {
-            rule.locations
-                .iter()
-                .flat_map(|d| match search_dir(d, &config, rule, cli.verbose) {
+            rule.locations.iter().flat_map(|d| {
+                match search_dir(d, &config, rule, cli.verbose, cli.dry_run) {
                     Ok(file_contexts) => file_contexts.into_iter().map(Ok).collect::<Vec<_>>(),
                     Err(e) => vec![Err(e)],
-                })
+                }
+            })
         })
         .collect();
 

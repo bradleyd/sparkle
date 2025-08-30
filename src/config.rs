@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use std::fmt::write;
 use std::path::PathBuf;
 use std::{fmt, fs};
 
@@ -30,10 +31,21 @@ pub enum Action {
         pattern: String,
         replacement: String,
     },
-    Compress {
-        format: CompressionFormat,
-    },
-    SetPermissions(()),
+}
+
+impl fmt::Display for Action {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Action::Echo(_) => write!(f, "Echo"),
+            Action::Move(path_buf) => write!(f, "Move"),
+            Action::Copy(path_buf) => write!(f, "Copy"),
+            Action::Delete => write!(f, "Delete"),
+            Action::Rename {
+                pattern,
+                replacement,
+            } => write!(f, "Rename"),
+        }
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -123,7 +135,7 @@ actions = [
         assert_eq!(config.rules.len(), 1);
         assert_eq!(config.rules[0].name, "test_rule");
         assert_eq!(config.rules[0].locations.len(), 1);
-        assert_eq!(config.rules[0].subfolders, true);
+        assert!(config.rules[0].subfolders);
         assert_eq!(config.rules[0].filters.len(), 1);
         assert_eq!(config.rules[0].actions.len(), 1);
     }
