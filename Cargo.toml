@@ -12,11 +12,15 @@ file-format = "0.28.0"
 clap = { version = "4.5.41", features = ["derive"] }
 mime_guess2 = "2.3.1"
 serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0"
 toml = "0.9"
 tracing = "0.1"
+tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", features = [
   "env-filter",
   "fmt",
+  "time",
+  "ansi",
   "json",
 ] }
 infer = "0.19.0"
@@ -24,6 +28,14 @@ zip = "4.5.0"
 content_inspector = "0.2.4"
 tree_magic_mini = "3.2.0"
 comfy-table = "7.2.0"
+rusqlite = { version = "0.37", features = ["bundled"] }
+rusqlite_migration = "2.3"
+ulid = "1.2.1"
+chrono = "0.4.41"
+thiserror = "2.0.16"
+time = { version = "0.3", features = ["macros"] }
+directories = "6"
+atty = "0.2"
 
 [dev-dependencies]
 tempfile = "3.8"

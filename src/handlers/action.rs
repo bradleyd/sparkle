@@ -63,7 +63,7 @@ pub fn run(actions: &[crate::config::Action], file_path: &Path) -> Result<(), Er
                 tracing::info!("Deleted {}", file_path.display());
             }
             crate::config::Action::Rename {
-                pattern,
+                pattern: _,
                 replacement,
             } => {
                 let parent_dir = file_path.parent();

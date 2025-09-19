@@ -4,6 +4,14 @@ use std::{
     io::{self},
 };
 
+use chrono::{Local, Timelike};
+
+pub fn log_to_terminal(message: &str) {
+    let now = Local::now();
+    let timestamp = format!("{}:{}:{}", now.hour(), now.minute(), now.second());
+    println!("[{}] {}", timestamp, message);
+}
+
 pub fn move_file(source_path: &Path, destination_path: &Path) -> std::io::Result<()> {
     tracing::debug!("Moving file {:?} to {:?}", source_path, destination_path);
     // TODO check if destination_path exists first

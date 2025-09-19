@@ -63,6 +63,7 @@ pub struct DetectResult {
     pub details: Option<String>, // why we think so
 }
 
+#[allow(clippy::collapsible_if)]
 pub fn detect2(path: &std::path::Path) -> std::io::Result<DetectResult> {
     use std::fs::File;
     use std::io::Read;

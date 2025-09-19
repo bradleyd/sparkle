@@ -1,5 +1,4 @@
 use serde::Deserialize;
-use std::fmt::write;
 use std::path::PathBuf;
 use std::{fmt, fs};
 
@@ -37,12 +36,12 @@ impl fmt::Display for Action {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Action::Echo(_) => write!(f, "Echo"),
-            Action::Move(path_buf) => write!(f, "Move"),
-            Action::Copy(path_buf) => write!(f, "Copy"),
+            Action::Move(_path_buf) => write!(f, "Move"),
+            Action::Copy(_path_buf) => write!(f, "Copy"),
             Action::Delete => write!(f, "Delete"),
             Action::Rename {
-                pattern,
-                replacement,
+                pattern: _,
+                replacement: _,
             } => write!(f, "Rename"),
         }
     }
@@ -65,13 +64,17 @@ pub enum Filter {
         size_lt: Option<u64>,
     },
 }
+
 impl Filter {
     pub fn as_str(&self) -> &'static str {
         match self {
-            Filter::Extension { extension } => "Extension",
-            Filter::NameContains { name_contains } => "NameContains",
-            Filter::Age { days_older_than } => "Age",
-            Filter::Size { size_gt, size_lt } => "Size",
+            Filter::Extension { extension: _ } => "Extension",
+            Filter::NameContains { name_contains: _ } => "NameContains",
+            Filter::Age { days_older_than: _ } => "Age",
+            Filter::Size {
+                size_gt: _,
+                size_lt: _,
+            } => "Size",
         }
     }
 }

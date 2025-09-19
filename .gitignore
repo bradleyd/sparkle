@@ -2,3 +2,5 @@
 test-examples/
 .DS_Store
 config.toml
+sparkle.db
+actions

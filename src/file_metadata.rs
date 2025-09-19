@@ -1,6 +1,6 @@
 use crate::content_info::ContentInfo;
 use crate::file_detector::{
-    Category, DetectResult, detect2, get_age_category, get_file_size_category, get_file_type,
+    Category, DetectResult, detect2, get_age_category, get_file_size_category,
 };
 use std::collections::HashMap;
 use std::fmt;
@@ -191,30 +191,9 @@ impl FileMetadata {
 }
 
 fn get_created_time(metadata: &Metadata) -> Option<SystemTime> {
-    if let Ok(created_at) = metadata.created() {
-        // Success case: The pattern matched, we have the creation time.
-        Some(created_at)
-    } else {
-        // Failure case: The pattern did not match, it must be an Err.
-        // We can print a message or log the error before returning None.
-        None
-    }
+    metadata.created().ok()
 }
 
 fn get_access_time(metadata: &Metadata) -> Option<SystemTime> {
-    if let Ok(atime) = metadata.accessed() {
-        // Success case: The pattern matched, we have the creation time.
-        Some(atime)
-    } else {
-        // Failure case: The pattern did not match, it must be an Err.
-        // We can print a message or log the error before returning None.
-        None
-    }
-}
-
-fn get_parent_dir(p: &Path) -> PathBuf {
-    match p.parent() {
-        Some(parent) => parent.to_path_buf(),
-        None => PathBuf::new(),
-    }
+    metadata.accessed().ok()
 }
